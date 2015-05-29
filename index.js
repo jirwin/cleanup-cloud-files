@@ -6,7 +6,7 @@ var chalk = require('chalk');
 var argv = require('minimist')(process.argv.slice(2));
 
 if (argv.help || !argv.user || !argv.apiKey || !argv.region || !argv.ageWindow) {
-  console.log('Usage: $0 --user <username> --apiKey <apiKey> --region <rackspace region> --ageWindow <the max age of a container to keep>');
+  console.log('Usage: $0 --user <username> --apiKey <apiKey> --region <rackspace region> --ageWindow <the max age of a container to keep (ms)>');
   console.log('\tAll runs default to a dry run. Pass --kamikaze to enable destructive behavior.');
   process.exit(1);
 }
@@ -75,6 +75,11 @@ async.auto({
     var containers = results.containers,
       now = Date.now();
 
+    if (!containers.length) {
+      callback();
+      return;
+    }
+
     console.log(chalk.yellow('Checking for the last time each container was touched...'));
     async.forEach(Object.keys(containers), function(c, callback) {
       rackspace.getFiles(c, {limit: Infinity}, function(err, files) {
@@ -95,7 +100,6 @@ async.auto({
         }, Number.MAX_VALUE);
 
         if (newestFileAge > argv.ageWindow) {
-          console.log(chalk.red.bold('Queueing ' + c + ' for deletion.'));
           deleteQueue.push({name: containers[c].name, bytes: containers[c].bytes});
         } else {
           console.log(chalk.yellow('Skipping ' + c + '.'));
@@ -111,5 +115,9 @@ async.auto({
   if (err) {
     console.error(chalk.red.bold('An error occurred:', err));
     process.exit(1);
+  }
+
+  if (results.containers) {
+    console.log(chalk.green('No containers found. Closing.'));
   }
 });
