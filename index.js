@@ -76,9 +76,16 @@ async.auto({
         console.log(chalk.bold('  region: ') + argv.region);
         process.exit(1); 
       }
+
+      var numContainers = 0;
+
       containers.forEach(function(c) {
         containersReturn[c.name] = c;
+        numContainers++;
       });
+
+      console.log(numContainers + ' containers found');
+
       callback(err, containersReturn);
     });
   },
@@ -86,6 +93,8 @@ async.auto({
   lastModified: ['containers', function getLastModified(callback, results) {
     var containers = results.containers,
       now = Date.now();
+
+    console.log('Current Date/Time: ' + new Date(now));
 
     if (!containers.length) {
       callback();
