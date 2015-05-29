@@ -12,6 +12,10 @@ if (argv.help || !argv.user || !argv.apiKey || !argv.region || !argv.ageWindow) 
   process.exit(1);
 }
 
+var ageWindowString = new Date(argv.ageWindow);
+
+console.log('Removing ' + chalk.bold(argv.region) + ' containers with no modifications since ' + chalk.bold(ageWindowString));
+
 if (argv.kamikaze) {
   console.log(chalk.red.bold('ENABLING DESTRUCTIVE BEHAVIOR'));
 }
@@ -126,6 +130,6 @@ async.auto({
   }
 
   if (results.containers) {
-    console.log(chalk.green('No containers found. Closing.'));
+    console.log(chalk.green('All containers have been modified since ' + chalk.bold(ageWindowString) + '. Closing.'));
   }
 });
