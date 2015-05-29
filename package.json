@@ -1,0 +1,15 @@
+{
+  "name": "cleanup-cloud-files",
+  "version": "0.0.1",
+  "description": "A simple script to mass delete entire cloud files containers if they only contain files older than a given age.",
+  "main": "index.js",
+  "author": "Justin Gallardo <justin.gallardo@gmail.com",
+  "license": "Apache v2",
+  "dependencies": {
+    "async": "^1.0.0",
+    "chalk": "^1.0.0",
+    "minimist": "^1.1.1",
+    "pkgcloud": "^1.2.0-alpha.0",
+    "pretty-bytes": "^2.0.1"
+  }
+}
