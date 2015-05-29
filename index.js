@@ -2,11 +2,12 @@ var pkgcloud = require('pkgcloud');
 var async = require('async');
 var prettyBytes = require('pretty-bytes');
 var chalk = require('chalk');
+var path = require('path');
 
 var argv = require('minimist')(process.argv.slice(2));
 
 if (argv.help || !argv.user || !argv.apiKey || !argv.region || !argv.ageWindow) {
-  console.log('Usage: $0 --user <username> --apiKey <apiKey> --region <rackspace region> --ageWindow <the max age of a container to keep (ms)>');
+  console.log('Usage: ' + path.basename(__filename) + ' --user <username> --apiKey <apiKey> --region <rackspace region> --ageWindow <the max age of a container to keep (ms)>');
   console.log('\tAll runs default to a dry run. Pass --kamikaze to enable destructive behavior.');
   process.exit(1);
 }
