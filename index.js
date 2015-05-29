@@ -65,6 +65,13 @@ async.auto({
     rackspace.getContainers(function(err, containers) {
       var containersReturn = {};
 
+      if (! containers) {
+        console.log(chalk.red.bold('Unable to check containers! ') + chalk.yellow('Please verify your args and try again:'));
+        console.log(chalk.bold('username: ') + argv.username);
+        console.log(chalk.bold(' api key: ') + 'not shown');
+        console.log(chalk.bold('  region: ') + argv.region);
+        process.exit(1); 
+      }
       containers.forEach(function(c) {
         containersReturn[c.name] = c;
       });
