@@ -13,9 +13,10 @@ if (argv.help || !argv.user || !argv.apiKey || !argv.region || !argv.ageWindow) 
   process.exit(1);
 }
 
-var ageWindowString = new Date(argv.ageWindow);
+var ageWindowStart = Date.now() - argv.ageWindow;
+var ageWindowStartString = new Date(ageWindowStart);
 
-console.log('Removing ' + chalk.bold(argv.region) + ' containers with no modifications since ' + chalk.bold(ageWindowString));
+console.log('Removing ' + chalk.bold(argv.region) + ' containers with no modifications since ' + chalk.bold(ageWindowStartString));
 
 if (argv.kamikaze) {
   console.log(chalk.red.bold('ENABLING DESTRUCTIVE BEHAVIOR'));
@@ -120,11 +121,13 @@ async.auto({
           }
           return prev;
         }, Number.MAX_VALUE);
+        console.log('comparing newest file age ' + newestFileAge + ' with age window ' + argv.ageWindow);
 
         if (newestFileAge > argv.ageWindow) {
           deleteQueue.push({name: containers[c].name, bytes: containers[c].bytes});
+          console.log(chalk.red('Queueing ' + c + ' (Last Modifed: ' + new Date(now - newestFileAge)));
         } else {
-          console.log(chalk.yellow('Skipping ' + c + '.'));
+          console.log(chalk.yellow('Skipping ' + c + ' (Last Modifed: ' + new Date(now - newestFileAge)));
         }
         callback();
       });
@@ -140,6 +143,6 @@ async.auto({
   }
 
   if (results.containers) {
-    console.log(chalk.green('All containers have been modified since ' + chalk.bold(ageWindowString) + '. Closing.'));
+    console.log(chalk.green('All containers have been modified since ' + chalk.bold(ageWindowStartString) + '. Closing.'));
   }
 });
