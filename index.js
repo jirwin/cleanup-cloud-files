@@ -7,6 +7,7 @@ var path = require('path');
 var argv = require('minimist')(process.argv.slice(2));
 
 if (argv.help || !argv.user || !argv.apiKey || !argv.region || !argv.ageWindow) {
+  console.log('This script removes any cloud files containers whose contents have not changed within the given age window.  The age window is given in milliseconds back in time fromw now (so 1 would would be the smallest allowable window');
   console.log('Usage: ' + path.basename(__filename) + ' --user <username> --apiKey <apiKey> --region <rackspace region> --ageWindow <the max age of a container to keep (ms)>');
   console.log('\tAll runs default to a dry run. Pass --kamikaze to enable destructive behavior.');
   process.exit(1);
