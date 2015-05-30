@@ -2,14 +2,21 @@ var pkgcloud = require('pkgcloud');
 var async = require('async');
 var prettyBytes = require('pretty-bytes');
 var chalk = require('chalk');
+var path = require('path');
 
 var argv = require('minimist')(process.argv.slice(2));
 
 if (argv.help || !argv.user || !argv.apiKey || !argv.region || !argv.ageWindow) {
-  console.log('Usage: $0 --user <username> --apiKey <apiKey> --region <rackspace region> --ageWindow <the max age of a container to keep (ms)>');
+  console.log('This script removes any cloud files containers whose contents have not changed within the given age window.  The age window is given in milliseconds back in time fromw now (so 1 would would be the smallest allowable window');
+  console.log('Usage: ' + path.basename(__filename) + ' --user <username> --apiKey <apiKey> --region <rackspace region> --ageWindow <the max age of a container to keep (ms)>');
   console.log('\tAll runs default to a dry run. Pass --kamikaze to enable destructive behavior.');
   process.exit(1);
 }
+
+var ageWindowStart = Date.now() - argv.ageWindow;
+var ageWindowStartString = new Date(ageWindowStart);
+
+console.log('Removing ' + chalk.bold(argv.region) + ' containers with no modifications since ' + chalk.bold(ageWindowStartString));
 
 if (argv.kamikaze) {
   console.log(chalk.red.bold('ENABLING DESTRUCTIVE BEHAVIOR'));
@@ -64,9 +71,23 @@ async.auto({
     rackspace.getContainers(function(err, containers) {
       var containersReturn = {};
 
+      if (! containers) {
+        console.log(chalk.red.bold('Unable to check containers! ') + chalk.yellow('Please verify your args and try again:'));
+        console.log(chalk.bold('username: ') + argv.username);
+        console.log(chalk.bold(' api key: ') + 'not shown');
+        console.log(chalk.bold('  region: ') + argv.region);
+        process.exit(1); 
+      }
+
+      var numContainers = 0;
+
       containers.forEach(function(c) {
         containersReturn[c.name] = c;
+        numContainers++;
       });
+
+      console.log(numContainers + ' containers found');
+
       callback(err, containersReturn);
     });
   },
@@ -75,7 +96,9 @@ async.auto({
     var containers = results.containers,
       now = Date.now();
 
-    if (!containers.length) {
+    console.log('Current Date/Time: ' + new Date(now));
+
+    if (!containers) {
       callback();
       return;
     }
@@ -98,11 +121,13 @@ async.auto({
           }
           return prev;
         }, Number.MAX_VALUE);
+        console.log('comparing newest file age ' + newestFileAge + ' with age window ' + argv.ageWindow);
 
         if (newestFileAge > argv.ageWindow) {
           deleteQueue.push({name: containers[c].name, bytes: containers[c].bytes});
+          console.log(chalk.red('Queueing ' + c + ' (Last Modifed: ' + new Date(now - newestFileAge)));
         } else {
-          console.log(chalk.yellow('Skipping ' + c + '.'));
+          console.log(chalk.yellow('Skipping ' + c + ' (Last Modifed: ' + new Date(now - newestFileAge)));
         }
         callback();
       });
@@ -118,6 +143,6 @@ async.auto({
   }
 
   if (results.containers) {
-    console.log(chalk.green('No containers found. Closing.'));
+    console.log(chalk.green('All containers have been modified since ' + chalk.bold(ageWindowStartString) + '. Closing.'));
   }
 });
