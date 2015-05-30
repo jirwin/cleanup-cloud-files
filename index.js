@@ -98,7 +98,7 @@ async.auto({
 
     console.log('Current Date/Time: ' + new Date(now));
 
-    if (!containers.length) {
+    if (!containers) {
       callback();
       return;
     }
